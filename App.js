@@ -13,23 +13,27 @@ const _ = require('lodash')
 const express = require('express')
 const app = express()
 
-app.use([logger, authorize])
+app.use([logger])
 
 const {locations} = require('./data/locations.js')
 
-app.get('/api/locations', (req,res) => {
+app.get('/api/locations/', (req,res) => {
     res.json(locations)
     res.end ('Finished')
 })
 
 app.get('/api/locations/:id', (req,res) =>{
-    const { id } = req.params
-    const location = locations.find((location) => location.id === Number(id))
-    if (!location){
-        return res.status(404).send(`Location with id: ${id} doesn't exist`)
+    try {
+        const { id } = req.params
+        const location = locations.find((location) => location.id === Number(id))
+        if (!location){
+            return res.status(404).send(`Location with id: ${id} doesn't exist`)
+        }
+        res.status(200).json(location)
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
     }
-    res.status(200).json(location)
-
 })
 
 app.get('/api/locations/:id/positions', (req,res) =>{
@@ -41,9 +45,7 @@ app.get('/api/locations/:id/positions', (req,res) =>{
     if (location.displayPositions.length === 0){
         return res.status(404).send(`There are no display positions found for location ${location.name}`)
     }
-    
     res.status(200).json(location.displayPositions)
-
 })
 
 app.all('*', (req, res) =>{
